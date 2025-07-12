@@ -44,6 +44,3 @@ A **real-time chat and video calling** MERN stack application with **OTP-based e
 5. If valid, user is created and logged in with JWT.
 
 ---
-
-## 📁 Project Structure
-
