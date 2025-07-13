@@ -18,7 +18,7 @@ const __dirname = path.resolve();
 connectDB();
 
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: ["http://localhost:5173", "http://localhost:5174","https://globe-speak.vercel.app"],
   credentials: true,
 }));
 app.use(express.json());
