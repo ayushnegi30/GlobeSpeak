@@ -26,18 +26,12 @@ export async function signup(req, res) {
       return res.status(400).json({ message: "Email already exists, please use a different one" });
     }
 
-    // ✅ Check OTP
     const otpRecord = await Otp.findOne({ email });
 
-    if (
-      !otpRecord ||
-      otpRecord.otp !== otp ||
-      new Date() > otpRecord.expiresAt
-    ) {
+    if (!otpRecord || otpRecord.otp !== otp || new Date() > otpRecord.expiresAt) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    // ✅ Delete OTP after verification
     await Otp.deleteOne({ email });
 
     const idx = Math.floor(Math.random() * 100) + 1;
@@ -56,7 +50,6 @@ export async function signup(req, res) {
         name: newUser.fullName,
         image: newUser.profilePic || "",
       });
-      console.log(`Stream user created for ${newUser.fullName}`);
     } catch (error) {
       console.log("Error creating Stream user:", error);
     }
@@ -66,10 +59,10 @@ export async function signup(req, res) {
     });
 
     res.cookie("jwt", token, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(201).json({ success: true, user: newUser });
@@ -78,6 +71,7 @@ export async function signup(req, res) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
 // ------------------- LOGIN -------------------
 export async function login(req, res) {
   try {
@@ -103,9 +97,8 @@ export async function login(req, res) {
         name: user.fullName,
         image: user.profilePic || "",
       });
-      console.log(`Stream user created for ${user.fullName}`);
     } catch (error) {
-      console.log("Error creating stream user:", error);
+      console.log("Error creating Stream user:", error);
     }
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
@@ -114,12 +107,12 @@ export async function login(req, res) {
 
     res.cookie("jwt", token, {
       httpOnly: true,
+      sameSite: "None",
+      secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       user: {
         _id: user._id,
@@ -132,7 +125,7 @@ export async function login(req, res) {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
 
@@ -141,14 +134,14 @@ export async function logout(req, res) {
   try {
     res.clearCookie("jwt", {
       httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
+      secure: true,
     });
 
-    return res.status(200).json({ success: true, message: "Logout successful" });
+    res.status(200).json({ success: true, message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error);
-    return res.status(500).json({ message: "Logout failed" });
+    res.status(500).json({ message: "Logout failed" });
   }
 }
 
@@ -194,15 +187,14 @@ export async function onboard(req, res) {
         name: updatedUser.fullName,
         image: updatedUser.profilePic,
       });
-      console.log(`✅ Stream user updated for ${updatedUser.fullName}`);
     } catch (streamError) {
-      console.log("⚠️ Stream update error:", streamError.message);
+      console.log("Stream update error:", streamError.message);
     }
 
-    return res.status(200).json({ success: true, user: updatedUser });
+    res.status(200).json({ success: true, user: updatedUser });
   } catch (error) {
-    console.error("❌ Onboard error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    console.error("Onboard error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
 
@@ -214,9 +206,9 @@ export async function getAuthUser(req, res) {
     );
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    return res.status(200).json({ user });
+    res.status(200).json({ user });
   } catch (error) {
     console.error("Error fetching auth user:", error.message);
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
